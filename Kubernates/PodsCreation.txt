@@ -1,0 +1,62 @@
+Creation of the Pods running them into work nodes 
+------------------------------------------------
+Step 1: first we will check if any Pods running in cluster
+kubectl get pods
+
+Step 2: create an YAML file inside the pod directory 
+# nginx-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  labels:
+    app: nginx
+    tier: dev
+
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx 
+
+
+  
+
+step 3: creating the pods 
+kubectl create -f nginx-pod.yaml
+
+# displaying the pods 
+kubectl get pods 
+
+# display the which worknodes which is running PODs inside 
+kubectl get pods -o wide 
+
+#displaying the objects details which inside the POds 
+kubectl get pod nginx-pod -o yaml
+
+#displaying complete details of the Pods running inside the nodes 
+kubectl describe pod nginx-pod
+
+
+Step 4: changing HTML file insde the container for testing 
+
+kubectl exec -it nginx-pod -- /bin/sh
+
+create an html file insde the default page of the server 
+
+ cd  /usr/share/nginx/html/
+ cat > index.html
+ welcome to Kubernates!!!
+
+
+Step 5: Expose PODS using NodePort service
+kubectl expose pod nginx-pod --type=NodePort --port=80
+
+# Display Service and find NodePort
+kubectl describe svc nginx-pod
+
+# Open Web-browser and access webapge using 
+http://nodeip:nodeport/test.html
+
+
+#IF we want to delete the pods 
+kubectl delete pod nginx-pod

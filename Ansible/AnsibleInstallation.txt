@@ -1,0 +1,39 @@
+sudo apt-get update
+sudo apt install software-properties-common
+sudo apt-add-repository --yes --update ppa:ansible/ansible
+sudo apt-get update
+sudo apt install ansible
+
+on hosts:
+========
+sudo apt-get update
+sudo apt-get install python
+
+On master: ( if we want to connect master to slave ,We need to pem or ppk)
+=========
+go to .ssh ==> ls
+authorized keys  known_hosts
+ssh-keygen  => this command is used to genereate key for particualr machine 
+ls
+id_rsa id_rsa.pub 
+
+We need to put code from id_rsa.pub to authorized keys on slave .
+
+ssh root@<ipaddres_slave>
+
+
+ansible host configuration :
+=============================
+/etc/ansible/hosts
+
+[production]
+slave1 ansible_ssh_host=<public adddess of slave1>
+
+Communication to slave :
+=====================
+ansible -m ping all : all the hosts which were added is displayed
+ansible -m ping <configration> : it will ping particular 
+
+
+
+

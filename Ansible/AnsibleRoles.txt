@@ -1,0 +1,75 @@
+Step 1: Ansible roles should be written in /etc/ansible/roles , below were the command to create role
+ansible-galaxy init < role-name> --offline
+
+ansible-galaxy init web --offline
+
+
+Step2:Install tree package using sudo apt install tree
+sudo apt install tree
+tree <role-name>
+
+Step 3: Go to the task folder inside the role-name directory,Edit main.yml for differnet kind of tasks we should be performed
+---
+# tasks file for apache
+- include: install.yml
+- include: configure.yml
+- include: service.yml
+
+Step 4: Inside the task folder ,creare below yml files 
+#install.yml
+---
+  - name: install apache2
+   apt: name=apache2 update_cache=yes state=latest
+
+#configure.yml
+---
+  - name:Configure Website
+    copy: src=index.html dest=/var/www/html
+
+
+
+#service.yml
+---
+  - name: starting apache2 service 
+    service: name=apache2 state=started
+
+
+Step5: Now, Now go inside files. Store the files that needs to be pushed to the remote machine. 
+
+/etc/ansible/roles/apache/files and create the html file.
+create index.html here
+
+
+
+
+Step6: Need to provide more information about this role like add author,role describtions,company information etc
+/etc/ansible/roles/web/meta --> main.yml
+galaxy_info:
+  author: Hari
+  description: Simple website
+  Company: abc technologies
+
+
+Step 7: we need to create site.yml for our configure them
+just remove existing ones and create new site.yml , delete exising site.yml in /etc/ansible then we can create this one 
+#site.yml
+
+---
+ - hosts: production 
+   root: yes
+   sudo: yes
+   roles:
+    - <roloe-name>
+
+Step 8 : we need to execute ansible role based project 
+ansible-playbook site.yml --syntax-check
+ansible-playbook site.yml
+
+
+
+
+
+
+
+
+
