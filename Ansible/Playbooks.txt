@@ -1,0 +1,70 @@
+//create.yml
+---
+ - hosts: production
+   user: root
+   tasks:
+    - name: create file
+      copy: dest=/abc.txt content='hi how are you'
+    - name: execute commad 'Date'
+      command: date
+    - name: updating packages
+      apt: name="*" state='latest'
+  
+
+
+ansible-playbook <play-bookname> --syntax-check  //executing the playbook
+
+ansible-playbook create.yml --syntax-check
+
+
+ansible-playbook <playbook name>                 //actuval exectuing of playbook
+
+//script.yml
+
+---
+ - hosts: production
+   user: root
+   tasks:
+    - name: execute commad 'Date'
+      command: date
+    - name: execute script on server
+      script: test_script.sh 
+
+//test_script
+#!/bin/bash
+sudo apt-get update
+sudo apt-get install apache2 -y
+ansible-playbook script.yml
+
+//variable.yml
+---
+ - hosts: production
+   user: root
+   vars:
+    welcome_msg: 'welocome to ansible'
+   tasks:
+    - name: create file
+      copy: dest=./variable.txt content="{{welcome_msg}}"
+
+
+//deploy.yml
+
+  - hosts: production
+   user: root
+   tasks:
+    - name: copy file
+      copy: src=files/index.html dest=/var/www/html/index.html
+
+---
+ - hosts: production
+   user: root
+   tasks:
+   - name: Install Nginx
+     apt: pkg=nginx state=installed update_cache=true
+     notify:
+      - Start Nginx
+
+  handlers:
+   - name: Start Nginx
+     service: name=nginx state=started
+
