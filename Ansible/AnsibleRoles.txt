@@ -56,10 +56,8 @@ just remove existing ones and create new site.yml , delete exising site.yml in /
 
 ---
  - hosts: production 
-   root: yes
-   sudo: yes
    roles:
-    - <roloe-name>
+    - web
 
 Step 8 : we need to execute ansible role based project 
 ansible-playbook site.yml --syntax-check
