@@ -23,7 +23,7 @@ Step 4: Inside the task folder ,creare below yml files
 
 #configure.yml
 ---
-  - name:Configure Website
+  - name: Configure Website
     copy: src=index.html dest=/var/www/html
 
 
