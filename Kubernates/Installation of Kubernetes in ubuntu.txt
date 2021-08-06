@@ -83,6 +83,26 @@ kubectl get po -o wide
 kubectl get pods --all-namespaces
 
 
+Issues : Kubelet is not started properly in master and workernodes 
+Solution : we need to verify logs after we initiatied the cluster(kubeadm init) by using logs command 
+systemctl status kubelet|journalctl -xe
+During above command if you see kubelet cg group is different from cgfroup for docker then follow below process 
+go to /etc/docker, inside the location we need to keep daemon file (daemon.json)
+daemon.json containes below configuration :
+{
+
+"exec-opts": ["native.cgroupdriver=systemd"]
+
+}
+
+after we updated above content in daemon.json then we have to restart docker daemon service by using below command 
+sudo systemctl restart docker 
+
+now we can initiaite cluster by using kubeadm init ,so kubeadm  will automatically bring up kubelet service 
+Same process we need to follow in workernode as well and need to run join command in workernode then automatically it will works 
+
+
+
 
 
 
