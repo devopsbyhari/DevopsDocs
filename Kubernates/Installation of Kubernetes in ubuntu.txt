@@ -101,6 +101,8 @@ sudo systemctl restart docker
 now we can initiaite cluster by using kubeadm init ,so kubeadm  will automatically bring up kubelet service 
 Same process we need to follow in workernode as well and need to run join command in workernode then automatically it will works 
 
+Recovring lost join command from master :
+kubeadm token create --print-join-command
 
 
 
