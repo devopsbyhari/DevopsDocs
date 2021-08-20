@@ -21,6 +21,22 @@ sudo apt-get update && sudo apt-get install -y apt-transport-https
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
 sudo apt-get update
+
+systemctl enable docker && systemctl start docker
+
+
+go to /etc/docker, inside the location we need to keep daemon file (daemon.json)
+daemon.json containes below configuration :
+{
+
+"exec-opts": ["native.cgroupdriver=systemd"]
+
+}
+
+after we updated above content in daemon.json then we have to restart docker daemon service by using below command 
+sudo systemctl restart docker 
+
+
  
 apt-get update && apt-get install -y kubeadm kubelet kubectl
 
