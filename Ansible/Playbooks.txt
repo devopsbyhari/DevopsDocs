@@ -82,3 +82,8 @@ ansible-playbook script.yml
    - name: Start Nginx
      service: name=nginx state=started
 
+Note: while performing cloud automation we need to do following step after completed User( need ful ec2 policy) in IAM 
+1) configure cli (aws configure)
+2) configure accces keyid and serect access key id while doing AWS configure
+3) write a playbook
+4) We need to install boto before executing playbook by using pip install boto . ( ubunntu will give suggestions for install pip client)
