@@ -60,3 +60,6 @@ http://nodeip:nodeport/test.html
 
 #IF we want to delete the pods 
 kubectl delete pod nginx-pod
+
+
+Reference : https://kubernetes.io/docs/concepts/workloads/pods/
