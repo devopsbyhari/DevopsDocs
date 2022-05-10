@@ -1,0 +1,140 @@
+step 1: provision two servers i.e one is for master and workernode
+Master : 2 CPUs and 4 GB of memory (t2.medium)
+172.31.92.162  master-node-k8
+172.31.20.77   worker-node-1-k8
+
+Step 2: Disable swap space
+sudo swapoff -a
+
+Step 3: Disable SELinux
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+Step 4 : Configure networking in master and worker node
+sudo vi /etc/hosts
+
+press i for insert
+
+172.31.92.162  master-node-k8
+172.31.20.77   worker-node-1-k8
+
+Esc+:wq!
+
+once host file is updated then please install iproute configurations
+sudo dnf install -y iproute-tc
+
+Step 5 : We need to install firewall daemon to configure firewall rules
+sudo yum install firewalld
+sudo systemctl start firewalld
+sudo systemctl enable firewalld
+sudo systemctl status firewalld
+
+Step 6 : Allow the firewall rules in masrer node 
+master:
+sudo firewall-cmd --permanent --add-port=6443/tcp
+sudo firewall-cmd --permanent --add-port=2379-2380/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp
+sudo firewall-cmd --permanent --add-port=10251/tcp
+sudo firewall-cmd --permanent --add-port=10252/tcp
+sudo firewall-cmd --reload
+
+worker-node:
+sudo firewall-cmd --permanent --add-port=10250/tcp
+sudo firewall-cmd --permanent --add-port=30000-32767/tcp
+sudo firewall-cmd --reload
+
+
+
+Step 7 : Install CRI-O container runtime
+sudo vi /etc/modules-load.d/k8s.conf
+press + insert
+
+overlay
+br_netfilter
+
+
+Esc+:wq!
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+configuration of systemctl parameters
+
+sudo vi /etc/sysctl.d/k8s.conf
+press + i
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+Esc+:wq!
+
+sudo sysctl --system
+
+export VERSION=1.21
+
+sudo curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable.repo https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_8/devel:kubic:libcontainers:stable.repo
+sudo curl -L -o /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/CentOS_8/devel:kubic:libcontainers:stable:cri-o:$VERSION.repo
+sudo dnf install cri-o
+
+sudo systemctl enable cri-o
+sudo systemctl start cri-o
+
+Step7 : Installation of kubernetes packages 
+
+sudo vi /etc/yum.repos.d/kubernetes.repo
+
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+exclude=kubelet kubeadm kubectl
+
+
+sudo dnf install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+sudo systemctl enable kubelet
+sudo systemctl start kubelet
+
+
+Step 8 : we need to perform in master node 
+sudo kubeadm init --pod-network-cidr=192.168.10.0/16
+
+while running this command we got two outputs one is for config and another is for join
+config needs to run in master
+join command needs to run in workernode
+
+kubeadm join 172.31.92.162:6443 --token uwp9c3.vgrh0ggpt1bjjicn \
+        --discovery-token-ca-cert-hash sha256:281cd4fe8259f2a59022c32c782d9c079f670b4d98d32eb1a7268cffa3455502
+
+
+Step 9 : install networking configurations in master
+
+kubectl create -f https://docs.projectcalico.org/manifests/tigera-operator.yaml
+
+kubectl create -f https://docs.projectcalico.org/manifests/custom-resources.yaml
+
+kubectl get pods -n calico-system
+
+please make sure node is ready 
+kubectl get no 
+
+Step 9: We have to run join command in workernode 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
