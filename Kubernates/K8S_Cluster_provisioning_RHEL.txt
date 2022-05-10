@@ -120,6 +120,9 @@ kubectl get no
 
 Step 9: We have to run join command in workernode 
 
+step 10 : Run below command in master
+kubectl get no 
+
 
 
 
