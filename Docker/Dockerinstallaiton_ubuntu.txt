@@ -1,5 +1,5 @@
 sudo apt update
-sudp apt-get install apache2 -y
+sudo apt-get install apache2 -y
 
 sudo apt install apt-transport-https ca-certificates curl software-properties-common
 
