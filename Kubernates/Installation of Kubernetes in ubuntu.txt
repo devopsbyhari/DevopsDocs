@@ -1,128 +1,68 @@
-Configuring Master nodes :
--------------------------
-Requirements : 
-Master: 2 vCPUs
-Worker: 1 vCPUs
-OS:     Ubuntu 
+Kubernetes Setup Using Kubeadm In AWS EC2 Ubuntu Servers -
+=======================================================
+Prerequisite:
+==========
+3 - Ubuntu Serves
+1 - Manager  (4GB RAM , 2 Core) t2.medium
+2 - Workers  (1 GB, 1 Core)     t2.micro
+Note: Open Required Ports In AWS Security Groups. For now we will open All trafic.
+==========COMMON FOR MASTER & SLAVES START ====
+# First, login as ‘root’ user because the following set of commands need to be executed with ‘sudo’ permissions.
+sudo su -
+# Install Required packages and apt keys.
+apt-get update -y
+apt-get install -y apt-transport-https
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
 
-Step 1: Install docker along with below tools in Master 
-
-kubeadm - bootstraps a Kubernetes cluster
-kubelet - configures containers to run on a host
-kubectl - deploys and manages apps on Kubernetes
-
-apt-get update && apt-get install -y apt-transport-https
-curl -s https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-add-apt-repository \
-    "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable"
-
-apt update && apt install -qy docker-ce
-sudo apt-get update && sudo apt-get install -y apt-transport-https
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-sudo apt-get update
-
-systemctl enable docker && systemctl start docker
-
-
-go to /etc/docker, inside the location we need to keep daemon file (daemon.json)
-daemon.json containes below configuration :
-{
-
-"exec-opts": ["native.cgroupdriver=systemd"]
-
-}
-
-after we updated above content in daemon.json then we have to restart docker daemon service by using below command 
-sudo systemctl restart docker 
+apt-get update -y
+#Turn Off Swap Space
+swapoff -a
+sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+# Install And Enable Docker
+apt install docker.io -y
+usermod -aG docker ubuntu
+systemctl restart docker
+systemctl enable docker.service
 
 
- 
-apt-get update && apt-get install -y kubeadm kubelet kubectl
+#Install kubeadm, Kubelet And Kubectl
+
+apt-get install -y kubelet kubeadm kubectl kubernetes-cni
+
+# Enable and start kubelet service
+systemctl daemon-reload
+systemctl start kubelet
+systemctl enable kubelet.service
 
 
-#Disable swap memory (if running) on both the nodes
-sudo swapoff -a
-
-
-
--------------------------------------------------------------------------------------------------------------
-Step 2: once you installed requred softwares ,make sure to up and running 
-
-# Start and enable docker and kubectl
-
-systemctl enable docker && systemctl start docker
-systemctl enable kubelet && systemctl start kubelet
-
-#apche2 installation
-apt-cache search apache
-sudo apt-get install apache2
-
-----------------------------------------------------------------------------------------------------------
-Step 3: configure kubernets in master node 
-kubeadm init --pod-network-cidr=10.240.0.0/16
-
-Once you entered above command you will get join commads for worknodes 
-
+==========COMMON FOR MASTER & SLAVES END=====
+===========In Master Node Start====================
+# Steps Only For Kubernetes Master
+# Switch to the root user.
+sudo su -
+# Initialize Kubernates master by executing below commond.
+kubeadm init
+#exit root user & exeucte as normal user
+exit
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-other one we need to copy join command for worknodes 
------------------------------------------------------------------------------------------------------------------------------
-Step 4: 
-Installing Flannel network-plug-in for cluster network
-
-kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-
+# To verify, if kubectl is working or not, run the following command.
+kubectl get pods -o wide --all-namespaces
+#You will notice from the previous command, that all the pods are running except one: ‘kube-dns’. For resolving this we will install a # pod network. To install the weave pod network, run the following command:
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+kubectl get nodes
 kubectl get pods --all-namespaces
---------------------------------------------------------------------------------------------------------------------
-Step 5: configure work node and install all required packages in step1 and step2.
-
--------------------------------------------------------------------------------------------
-
-step 6 : Get exact join command from previous kubeadm init command output.
-
------------------------------------------------------------------------------------------------------------------------------
-step 7 : testing 
-
-# Display nodes status
-kubectl get no
-
-# Deploying sample application
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/website/master/content/en/examples/controllers/nginx-deployment.yaml
-
-# Displaying Pod status
-kubectl get po -o wide
-
-# Displaying all name spaces 
-kubectl get pods --all-namespaces
-
-
-Issues : Kubelet is not started properly in master and workernodes 
-Solution : we need to verify logs after we initiatied the cluster(kubeadm init) by using logs command 
-systemctl status kubelet|journalctl -xe
-During above command if you see kubelet cg group is different from cgfroup for docker then follow below process 
-go to /etc/docker, inside the location we need to keep daemon file (daemon.json)
-daemon.json containes below configuration :
-{
-
-"exec-opts": ["native.cgroupdriver=systemd"]
-
-}
-
-after we updated above content in daemon.json then we have to restart docker daemon service by using below command 
-sudo systemctl restart docker 
-
-now we can initiaite cluster by using kubeadm init ,so kubeadm  will automatically bring up kubelet service 
-Same process we need to follow in workernode as well and need to run join command in workernode then automatically it will works 
-
-Recovring lost join command from master :
+# Get token
 kubeadm token create --print-join-command
-
-
-
-
-
-
-
+=========In Master Node End====================
+Add Worker Machines to Kubernates Master
+=========================================
+Copy kubeadm join token from and execute in Worker Nodes to join to cluster
+kubectl commonds has to be executed in master machine.
+Check Nodes
+=============
+kubectl get nodes
