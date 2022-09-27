@@ -1,5 +1,6 @@
 first we need to install Java 
-apt install openjdk-8-jre-headless
+sudo apt-get update -y
+apt install openjdk-11-jre-headless
 
 Jenkins installation steps :
 -----------------------
