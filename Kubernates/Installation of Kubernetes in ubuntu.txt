@@ -2,9 +2,9 @@ Kubernetes Setup Using Kubeadm In AWS EC2 Ubuntu Servers -
 =======================================================
 Prerequisite:
 ==========
-3 - Ubuntu Serves
+Ubunut 20.X
 1 - Manager  (4GB RAM , 2 Core) t2.medium
-2 - Workers  (1 GB, 1 Core)     t2.micro
+1 - Workers  (1 GB, 1 Core)     t2.micro
 Note: Open Required Ports In AWS Security Groups. For now we will open All trafic.
 ==========COMMON FOR MASTER & SLAVES START ====
 # First, login as ‘root’ user because the following set of commands need to be executed with ‘sudo’ permissions.
@@ -37,6 +37,16 @@ systemctl daemon-reload
 systemctl start kubelet
 systemctl enable kubelet.service
 
+apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+apt-get update && apt-get install -y containerd.io
+
+
+mkdir -p /etc/containerd
+containerd config default > /etc/containerd/config.toml
+systemctl restart containerd
+
 
 ==========COMMON FOR MASTER & SLAVES END=====
 ===========In Master Node Start====================
@@ -53,7 +63,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 # To verify, if kubectl is working or not, run the following command.
 kubectl get pods -o wide --all-namespaces
 #You will notice from the previous command, that all the pods are running except one: ‘kube-dns’. For resolving this we will install a # pod network. To install the weave pod network, run the following command:
-kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 kubectl get nodes
 kubectl get pods --all-namespaces
 # Get token
