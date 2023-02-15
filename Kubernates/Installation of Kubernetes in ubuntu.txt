@@ -18,9 +18,20 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 
 apt-get update -y
+
 #Turn Off Swap Space
 swapoff -a
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+#Explanation for turn off swap space
+In a Kubernetes cluster, it is generally recommended to disable swap space on the worker nodes. This is because swap space can have 
+a negative impact on the performance and stability of the Kubernetes nodes.
+When a node in a Kubernetes cluster starts to use swap space, it can slow down the performance of the node, as accessing data from 
+the hard disk is much slower than accessing it from RAM. Additionally, the node may become unstable or even crash if it runs out 
+of physical memory and starts using too much swap space.
+In a Kubernetes cluster, it is important to ensure that each node has enough physical memory to handle the workload that it is running. 
+Disabling swap space helps to ensure that the nodes are using only physical memory, which can improve performance and stability.
+
 # Install And Enable Docker
 apt install docker.io -y
 usermod -aG docker ubuntu
