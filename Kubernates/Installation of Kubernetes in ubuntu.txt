@@ -79,6 +79,12 @@ kubectl get nodes
 kubectl get pods --all-namespaces
 # Get token
 kubeadm token create --print-join-command
+
+kubeadm token list
+
+kubeadm token create
+
+
 =========In Master Node End====================
 Add Worker Machines to Kubernates Master
 =========================================
