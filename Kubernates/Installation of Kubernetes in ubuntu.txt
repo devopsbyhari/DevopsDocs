@@ -1,78 +1,58 @@
-Kubernetes Setup Using Kubeadm In AWS EC2 Ubuntu Servers -
-=======================================================
-Prerequisite:
-==========
-Ubunut 20.X
-1 - Manager  (4GB RAM , 2 Core) t2.medium
-1 - Workers  (1 GB, 1 Core)     t2.micro
-Note: Open Required Ports In AWS Security Groups. For now we will open All trafic.
-==========COMMON FOR MASTER & SLAVES START ====
-# First, login as ‘root’ user because the following set of commands need to be executed with ‘sudo’ permissions.
-sudo su -
-# Install Required packages and apt keys.
-apt-get update -y
-apt-get install -y apt-transport-https
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
-deb https://apt.kubernetes.io/ kubernetes-xenial main
-EOF
+System Requiremts:
+==================
+Ubuntu : 20.x
+Master : 2Cpus => t2.medium
+Workernode: 1Cpu => t2.micro (free)
 
-apt-get update -y
-#Turn Off Swap Space
+Step 1:  update the system 
+sudo apt update
+
+Step 2: Installation and enable docker 
+
+sudo apt install docker.io
+sudo systemctl enable docker
+sudo systemctl start docker
+
+Step 3: adding packages and installation of kubernetes 
+
+sudo apt install -y apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+Step 4: once you installed kubernetes then update your system
+sudo apt update
+
+Step 5 : Install kubelet ,kubeadm and kubectl tools 
+sudo apt install -y kubelet kubeadm kubectl
+
+Step 6 : Disable Swap memory
+
 swapoff -a
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-# Install And Enable Docker
-apt install docker.io -y
-usermod -aG docker ubuntu
-systemctl restart docker
-systemctl enable docker.service
 
+Step 7 : Initiate cluster in master ( we will get two 1) join and 2) config)
+sudo kubeadm init
 
-#Install kubeadm, Kubelet And Kubectl
+Note: make sure join command saved into secure location and execute them in workernode 
 
-apt-get install -y kubelet kubeadm kubectl kubernetes-cni
-
-# Enable and start kubelet service
-systemctl daemon-reload
-systemctl start kubelet
-systemctl enable kubelet.service
-
-apt-get update && apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
-apt-get update && apt-get install -y containerd.io
-
-
-mkdir -p /etc/containerd
-containerd config default > /etc/containerd/config.toml
-systemctl restart containerd
-
-
-==========COMMON FOR MASTER & SLAVES END=====
-===========In Master Node Start====================
-# Steps Only For Kubernetes Master
-# Switch to the root user.
-sudo su -
-# Initialize Kubernates master by executing below commond.
-kubeadm init
-#exit root user & exeucte as normal user
-exit
+Step 8 : Execute the congfig in master 
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
-# To verify, if kubectl is working or not, run the following command.
-kubectl get pods -o wide --all-namespaces
+
+Step 9: Execute below command for components status 
+kubectl get pods --all-namespaces
+
+
+Step 10 : Install Weaveworks package for networking 
 #You will notice from the previous command, that all the pods are running except one: ‘kube-dns’. For resolving this we will install a # pod network. To install the weave pod network, run the following command:
 kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
-kubectl get nodes
+
+Step 11: Execute below command for component status 
 kubectl get pods --all-namespaces
-# Get token
-kubeadm token create --print-join-command
-=========In Master Node End====================
-Add Worker Machines to Kubernates Master
-=========================================
-Copy kubeadm join token from and execute in Worker Nodes to join to cluster
-kubectl commonds has to be executed in master machine.
-Check Nodes
-=============
-kubectl get nodes
+
+Step 12 : execute join command in workernoder
+
+Step 13: Check the nodes status 
+kubectl get nodes 
