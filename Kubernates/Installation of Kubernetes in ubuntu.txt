@@ -4,6 +4,8 @@ Ubuntu : 20.x
 Master : 2Cpus => t2.medium
 Workernode: 1Cpu => t2.micro (free)
 
+Note : step1 to step 6 for both master and workernodes
+
 Step 1:  update the system 
 sudo apt update
 
