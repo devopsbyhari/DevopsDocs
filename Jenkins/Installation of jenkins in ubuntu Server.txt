@@ -1,3 +1,8 @@
+make sure to install apacha2 for access server in browser
+sudo apt-get update -y
+sudo apt-get install apache2 -y
+
+
 first we need to install Java 
 sudo apt-get update -y
 apt install openjdk-11-jre-headless
