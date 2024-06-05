@@ -1,6 +1,6 @@
 System Requiremts:
 ==================
-Ubuntu : 20.x
+Ubuntu : 24.x
 Master : 2Cpus => t2.medium
 Workernode: 1Cpu => t2.micro (free)
 
